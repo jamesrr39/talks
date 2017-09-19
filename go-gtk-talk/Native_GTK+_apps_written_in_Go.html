@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<!-- saved from url=(0055)http://127.0.0.1:3999/go-gtk-talk/slides/go-gtk.slide#1 -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Native GTK+ apps written in Go</title>
+    
+    <script>
+      var notesEnabled =  false ;
+    </script>
+    <script src="./Native_GTK+_apps_written_in_Go_files/slides.js"></script>
+
+    
+
+    <script>
+      
+      if (window["location"] && window["location"]["hostname"] == "talks.golang.org") {
+        var _gaq = _gaq || [];
+        _gaq.push(["_setAccount", "UA-11222381-6"]);
+        _gaq.push(["b._setAccount", "UA-49880327-6"]);
+        window.trackPageview = function() {
+          _gaq.push(["_trackPageview", location.pathname+location.hash]);
+          _gaq.push(["b._trackPageview", location.pathname+location.hash]);
+        };
+        window.trackPageview();
+        window.trackEvent = function(category, action, opt_label, opt_value, opt_noninteraction) {
+          _gaq.push(["_trackEvent", category, action, opt_label, opt_value, opt_noninteraction]);
+          _gaq.push(["b._trackEvent", category, action, opt_label, opt_value, opt_noninteraction]);
+        };
+      }
+    </script>
+  <meta name="viewport" content="width=1100,height=750"><meta name="apple-mobile-web-app-capable" content="yes"></head>
+
+  <body style="display: none" class="loaded">
+
+    <section class="slides layout-widescreen">
+
+      <article class="current">
+        <h1>Native GTK+ apps written in Go</h1>
+        
+        
+        
+          <div class="presenter">
+            
+  
+  <p>
+    19 September 2017
+  </p>
+  
+
+          </div>
+        
+          <div class="presenter">
+            
+  
+  <p>
+    James Ralphs
+  </p>
+  
+
+          </div>
+        
+          <div class="presenter">
+            
+          </div>
+        
+      </article>
+
+  
+  
+      <article class="next">
+      
+        <h3>About Me</h3>
+        
+  <ul>
+  
+    <li>Web developer since 2013.</li>
+  
+    <li>Wrote my first line of Go in mid-2014.</li>
+  
+    <li>Over time, I came to really like a lot of ideas behind Go.</li>
+  
+    <li>One of my interests is making applications for users, whether developers or normal people at home, hence the interest in linking Go and UI.</li>
+  
+  </ul>
+
+      
+      </article>
+  
+  
+  
+      <article class="far-next">
+      
+        <h3>GUI libraries for Go</h3>
+        <p class="link"><a href="https://github.com/avelino/awesome-go#gui" target="_blank">github.com/avelino/awesome-go#gui</a></p>
+  <ul>
+  
+    <li>Mostly bindings &amp; cgo.</li>
+  
+    <li>A couple of projects using electron.</li>
+  
+    <li><a href="https://godoc.org/golang.org/x/exp/shiny" target="_blank">Shiny</a>; pure Go, but lacking key features.</li>
+  
+  </ul>
+
+  
+  <p>
+    In short, we are still missing a fully-featured, pure Go, GUI library.
+<br>
+
+    However there are some creative solutions.
+  </p>
+  
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>GTK+</h3>
+        
+  
+  <p>
+    This talk will be about GTK+ 3 <a href="https://github.com/gotk3/gotk3" target="_blank">gotk3</a> bindings, and GTK+ 2 with the <a href="https://github.com/mattn/go-gtk" target="_blank">go-gtk</a> bindings.
+  </p>
+  
+
+  <ul>
+  
+    <li>Cross platform GUI Library, written in C.</li>
+  
+    <li>Been around for ages.</li>
+  
+    <li>Bindings for many languages.</li>
+  
+    <li>LGPL2.1 for GTK+, ISC (gotk3)/MIT (go-gtk) licenses for bindings.</li>
+  
+    <li>cgo...</li>
+  
+    <li>Aside from the documentation on github, these might also be helpful:</li>
+  
+  </ul>
+
+  
+  <p>
+    -- <a href="https://github.com/gotk3/gotk3-examples" target="_blank">gotk3 examples</a>
+<br>
+
+    -- <a href="http://mattn.github.io/go-gtk" target="_blank">go-gtk demo page</a>
+<br>
+
+    -- PyGTK documentation.
+<br>
+
+    A couple of sample projects:
+<br>
+
+    -- <a href="https://github.com/jamesrr39/taskrunner-app" target="_blank">github.com/jamesrr39/taskrunner-app</a> (go-gtk)
+<br>
+
+    -- <a href="https://github.com/jamesrr39/gtk3-image-gallery-demo-app" target="_blank">github.com/jamesrr39/gtk3-image-gallery-demo-app</a> (gotk3)
+  </p>
+  
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>Installation &amp; build</h3>
+        
+  
+  <p>
+    For Ubuntu:16.04:
+  </p>
+  
+
+  <ul>
+  
+    <li>gotk3:</li>
+  
+  </ul>
+
+  
+  <p>
+    Install C dependencies:
+  </p>
+  
+
+  <div class="code">
+
+
+<pre><span num="2">sudo apt update &amp;&amp; sudo apt install -y libgtk-3-dev libcairo2-dev libglib2.0-dev</span>
+<span num="3">go get github.com/gotk3/gotk3/gtk</span>
+<span num="4">go install -tags gtk_3_18 github.com/gotk3/gotk3/gtk</span>
+</pre>
+
+
+</div>
+
+  
+  <p>
+    Build for Ubuntu 16.04:
+  </p>
+  
+
+  <div class="code">
+
+
+<pre><span num="8">go build -tags gtk_3_18 -gcflags "-N -l" -o &lt;output file&gt; &lt;entry file&gt;</span>
+</pre>
+
+
+</div>
+
+  <ul>
+  
+    <li>go-gtk:</li>
+  
+  </ul>
+
+  
+  <p>
+    Install C dependencies:
+  </p>
+  
+
+  <div class="code">
+
+
+<pre><span num="12">sudo apt update &amp;&amp; sudo apt install -y build-essential libgtk2.0-dev</span>
+</pre>
+
+
+</div>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>Starting out</h3>
+        
+  
+  <p>
+    Error handling omitted so it would fit on one slide. Taken from the gotk3 README.
+  </p>
+  
+
+  <div class="code">
+
+
+<pre><span num="1">package main</span>
+<span num="2"></span>
+<span num="3">import (</span>
+<span num="4">    "github.com/gotk3/gotk3/gtk"</span>
+<span num="5">)</span>
+<span num="6"></span>
+<span num="7">func main() {</span>
+<span num="8">    gtk.Init(nil)</span>
+<span num="9"></span>
+<span num="10">    win, _ := gtk.WindowNew(gtk.WINDOW_TOPLEVEL)</span>
+<span num="11">    win.SetTitle("Simple Example")</span>
+<span num="12">    win.Connect("destroy", func() {</span>
+<span num="13">        gtk.MainQuit()</span>
+<span num="14">    })</span>
+<span num="15"></span>
+<span num="16">    label, _ := gtk.LabelNew("Hello, gotk3!")</span>
+<span num="17"></span>
+<span num="18">    win.Add(label)</span>
+<span num="19">    win.SetDefaultSize(800, 600)</span>
+<span num="20">    win.ShowAll()</span>
+<span num="21">    gtk.Main()</span>
+<span num="22">}</span>
+</pre>
+
+
+</div>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>Layout</h3>
+        
+  <ul>
+  
+    <li>Vertical Box and Horizonal Box are kind of a "bread and butter" of layouts.</li>
+  
+    <li>Both have a PackStart(child, expand, fill, padding), and PackEnd, method, and will handle responsiveness as the space allocation changes.</li>
+  
+  </ul>
+
+  <div class="code">
+
+
+<pre><span num="2">padding := 5</span>
+<span num="3">hbox, _ := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, padding)</span>
+<span num="4">label, _ := gtk.LabelNew("my label")</span>
+<span num="5">hbox.PackStart(label, false, false, 0)</span>
+</pre>
+
+
+</div>
+
+  <ul>
+  
+    <li>ScrolledWindow is also a very useful layout tool for when the items you want to show will/might overflow.</li>
+  
+  </ul>
+
+  <div class="code">
+
+
+<pre><span num="9">scrollWin, _ := gtk.ScrolledWindowNew(nil, nil)</span>
+<span num="10">scrollWin.SetPolicy(gtk.POLICY_ALWAYS, gtk.POLICY_ALWAYS)</span>
+<span num="11">scrollWin.Add(hbox)</span>
+</pre>
+
+
+</div>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>Images</h3>
+        
+  
+  <p>
+    While both sets of bindings have image from file path methods, in Go we would like support for showing an <code>image.Image</code>.
+  </p>
+  
+
+  <div class="code">
+
+
+<pre><span num="2">pixbuf, _ := gdk.PixbufNew(gdk.COLORSPACE_RGB, true, 8, width, height)</span>
+<span num="3">pixelSlice := pixbuf.GetPixels() // underlying slice of bytes. Each pixel is 4 bytes (r, g, b, a).</span>
+<span num="4">log.Printf("red value of pixel (1, 0): %d\n", pixelSlice[4])</span>
+<span num="5"></span>
+<span num="6">imageWidget, err := gtk.ImageNewFromPixbuf(pixbuf)</span>
+</pre>
+
+
+</div>
+
+  
+  <p>
+    If you make changes to any widgets, remember to call myWidget.ShowAll()
+  </p>
+  
+
+  
+  <p>
+    You can find utilities to convert image.Image to gdk pixel buffers here: <a href="https://github.com/jamesrr39/go-gtk-extra" target="_blank">github.com/jamesrr39/go-gtk-extra</a>
+  </p>
+  
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>Events</h3>
+        
+  <div class="code">
+
+
+<pre><span num="2">myWidget.Connect("clicked", func() { ... }) // also works for tab + space</span>
+<span num="3">myWidget.Connect("size-allocate", func() { ... }) // on the widget size allocation changing</span>
+<span num="4">window.Connect("destroy", func() { ... })</span>
+</pre>
+
+
+</div>
+
+  <ul>
+  
+    <li>PyGTK and GTK+ developer.gnome.org documentation very useful for signal names.</li>
+  
+    <li>Using a debouncer (only run this function once every x ms) is a very good idea for signals that can be fired many times in a short period of time (ex. "size-allocate").</li>
+  
+  </ul>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>Patterns</h3>
+        
+  
+  <p>
+    Card interface
+  </p>
+  
+
+  <div class="code">
+
+
+<pre><span num="2">type Card interface {</span>
+<span num="3">    Render() gtk.IWidget</span>
+<span num="4">}</span>
+</pre>
+
+
+</div>
+
+  
+  <p>
+    Can be coupled with
+  </p>
+  
+
+  <div class="code">
+
+
+<pre><span num="8">func (w *AppWindow) RenderCard(card Card) {</span>
+<span num="9">    if nil != w.contentContainer {</span>
+<span num="10">        w.contentContainer.Destroy()</span>
+<span num="11">    }</span>
+<span num="12">    w.contentContainer, _ = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)</span>
+<span num="13">    w.contentContainer.PackStart(card.Render(), true, true, 0)</span>
+<span num="14">    w.outerContainer.PackStart(w.contentContainer, true, true, 0)</span>
+<span num="15"></span>
+<span num="16">    w.win.ShowAll()</span>
+<span num="17">}</span>
+</pre>
+
+
+</div>
+
+  
+  <p>
+    where <code>AppWindow</code> is a struct containing outerContainer, contentContainer, the window and data access objects.
+  </p>
+  
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>Asynchronous/goroutines</h3>
+        
+  
+  <p>
+    GTK+ is <b>not</b> thread-safe, but has APIs for handling UI updates by different goroutines.
+  </p>
+  
+
+  <ul>
+  
+    <li>gotk3</li>
+  
+  </ul>
+
+  <div class="code">
+
+
+<pre><span num="2">glib.IdleAdd(f func(), args ...interface{})</span>
+<span num="3">glib.IdleAdd(myLabel.SetText, "hello") // for those that like interface{}</span>
+<span num="4">glib.IdleAdd(func() {</span>
+<span num="5">  loadingLabel.Destroy()</span>
+<span num="6">  imageWidgetContainer.PackStart(imageWidget, false, false, 0)</span>
+<span num="7">  imageWidgetContainer.ShowAll()</span>
+<span num="8">}) // for everyone else</span>
+</pre>
+
+
+</div>
+
+  <ul>
+  
+    <li>go-gtk</li>
+  
+  </ul>
+
+  <div class="code">
+
+
+<pre><span num="12">// in `func main()`, before gtk.Init(nil)</span>
+<span num="13">glib.ThreadInit(nil)</span>
+<span num="14">gdk.ThreadsInit()</span>
+<span num="15">gdk.ThreadsEnter()</span>
+<span num="16"></span>
+<span num="17">// later on, from your goroutine:</span>
+<span num="18">gdk.ThreadsEnter()</span>
+<span num="19">myLabel.SetText(calculationResult)</span>
+<span num="20">gdk.ThreadsLeave()</span>
+</pre>
+
+
+</div>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>Lazy loading</h3>
+        
+  <ul>
+  
+    <li>In UI development on whatever library you use, doing lots of calculations on the main "thread" is a recipe for "app not responding".</li>
+  
+    <li>Fortunately in Go, it's very easy to create goroutines to do this work.</li>
+  
+    <li>You can use the previous slide as a guide to asynchronous operations/goroutines to put all of your heavy work in there and update the UI from them, while keeping the OS happy with a reponsive main goroutine.</li>
+  
+    <li>It's worth considering adding a context.Context argument to the <code>Card.Render()</code> method, or an <code>onClose()</code> method to the <code>Card</code> interface.</li>
+  
+  </ul>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>Embedding static assets</h3>
+        
+  
+  <p>
+    <a href="https://github.com/jteeuwen/go-bindata" target="_blank">github.com/jteeuwen/go-bindata</a> is a package that turns binary assets into Go source code.
+<br>
+
+    - Basically turns binary files into: var _fileX = []byte("\xff\ ... )
+<br>
+
+    - Has worked well for me for web resources.
+<br>
+
+    - Simple and effective way of keeping the "one binary" deployment.
+  </p>
+  
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>Another GUI project with a different approach worth mentioning:</h3>
+        
+  <ul>
+  
+    <li><a href="https://github.com/asticode/go-astilectron" target="_blank">github.com/asticode/go-astilectron</a></li>
+  
+    <li>A different approach on a Go GUI. Uses <a href="https://electron.atom.io/" target="_blank">Electron</a>; so HTML/CSS/JS frontend, and Go "server".</li>
+  
+    <li>Communicates via a port, so basically a client/server relationship.</li>
+  
+    <li>Security against a second user accessing it via a port built in - when attempting to open a second TCP connections, the app crashes.</li>
+  
+    <li>MIT License - might be more acceptable in a business setting than the LGPL that GTK+ comes with.</li>
+  
+  </ul>
+
+      
+      </article>
+  
+  
+  
+      <article>
+      
+        <h3>So, I want to write a Desktop Application in Go for my app! What should I use?</h3>
+        
+  <ul>
+  
+    <li>If you want something flashy, HTML/CSS/JS is your best bet - so something that uses Electron backed with Go (go-astilectron!) would be a good choice here.</li>
+  
+    <li>For a more Go-centric approach, go-gtk and gotk3 are both stable sets of bindings that provide an easy-to-use interface to GUI programming in Go.</li>
+  
+    <li>Cgo makes getting started not straightforward, and cross-compiling becomes difficult.</li>
+  
+    <li>Remember, for things running in controlled environments, there is also:</li>
+  
+  </ul>
+
+  <div class="code">
+
+
+<pre><span num="2">exec.Cmd("google-chrome", "--app=file:///path/to/resource.ext").Run()</span>
+</pre>
+
+
+</div>
+
+  
+  <p>
+    (google-chrome binary name may vary by platform)
+  </p>
+  
+
+      
+      </article>
+  
+  
+
+      <article>
+        <h3>Thank you</h3>
+        
+          <div class="presenter">
+            
+  
+  <p>
+    19 September 2017
+  </p>
+  
+<p class="link"><a href="http://127.0.0.1:3999/go-gtk-talk/slides/go-gtk.slide#ZgotmplZ" target="_blank">Tags: GTK+, Go, Desktop Application</a></p>
+          </div>
+        
+          <div class="presenter">
+            
+  
+  <p>
+    James Ralphs
+  </p>
+  
+
+          </div>
+        
+          <div class="presenter">
+            <p class="link"><a href="mailto:jr.ralphs@gmail.com" target="_blank">jr.ralphs@gmail.com</a></p>
+          </div>
+        
+      </article>
+
+    <div class="slide-area" id="prev-slide-area"></div><div class="slide-area" id="next-slide-area"></div></section>
+
+    <div id="help" style="display: none;">
+      Use the left and right arrow keys or click the left and right
+      edges of the page to navigate between slides.<br>
+      (Press 'H' or navigate to hide this message.)
+    </div>
+
+    
+    <script src="./Native_GTK+_apps_written_in_Go_files/play.js"></script>
+    
+
+    <script>
+      (function() {
+        
+        if (window["location"] && window["location"]["hostname"] == "talks.golang.org") {
+          var ga = document.createElement("script"); ga.type = "text/javascript"; ga.async = true;
+          ga.src = ("https:" == document.location.protocol ? "https://ssl" : "http://www") + ".google-analytics.com/ga.js";
+          var s = document.getElementsByTagName("script")[0]; s.parentNode.insertBefore(ga, s);
+        }
+      })();
+    </script>
+  
+
+<link rel="stylesheet" type="text/css" href="./Native_GTK+_apps_written_in_Go_files/css"><link rel="stylesheet" type="text/css" href="./Native_GTK+_apps_written_in_Go_files/styles.css"></body></html>
