@@ -1,0 +1,7 @@
+// START PIXBUF OMIT
+pixbuf, _ := gdk.PixbufNew(gdk.COLORSPACE_RGB, true, 8, width, height)
+pixelSlice := pixbuf.GetPixels() // underlying slice of bytes. Each pixel is 4 bytes (r, g, b, a).
+log.Printf("red value of pixel (1, 0): %d\n", pixelSlice[4])
+
+imageWidget, err := gtk.ImageNewFromPixbuf(pixbuf)
+// END PIXBUF OMIT

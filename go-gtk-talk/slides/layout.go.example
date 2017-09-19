@@ -1,0 +1,12 @@
+// START BOX OMIT
+padding := 5
+hbox, _ := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, padding)
+label, _ := gtk.LabelNew("my label")
+hbox.PackStart(label, false, false, 0)
+// END BOX OMIT
+
+// START SCROLLEDWINDOW OMIT
+scrollWin, _ := gtk.ScrolledWindowNew(nil, nil)
+scrollWin.SetPolicy(gtk.POLICY_ALWAYS, gtk.POLICY_ALWAYS)
+scrollWin.Add(hbox)
+// END SCROLLEDWINDOW OMIT

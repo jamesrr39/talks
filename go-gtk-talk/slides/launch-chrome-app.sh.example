@@ -1,0 +1,3 @@
+// START LAUNCH CHROME APP OMIT
+exec.Cmd("google-chrome", "--app=file:///path/to/resource.ext").Run()
+// END LAUNCH CHROME APP OMIT

@@ -1,0 +1,18 @@
+// START CARD OMIT
+type Card interface {
+	Render() gtk.IWidget
+}
+// END CARD OMIT
+
+// START RENDERCARD OMIT
+func (w *AppWindow) RenderCard(card Card) {
+	if nil != w.contentContainer {
+		w.contentContainer.Destroy()
+	}
+	w.contentContainer, _ = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+	w.contentContainer.PackStart(card.Render(), true, true, 0)
+	w.outerContainer.PackStart(w.contentContainer, true, true, 0)
+
+	w.win.ShowAll()
+}
+// END RENDERCARD OMIT

@@ -1,0 +1,21 @@
+// START GOTK3 OMIT
+glib.IdleAdd(f func(), args ...interface{})
+glib.IdleAdd(myLabel.SetText, "hello") // for those that like reflection
+glib.IdleAdd(func() {
+  loadingLabel.Destroy()
+  imageWidgetContainer.PackStart(imageWidget, false, false, 0)
+  imageWidgetContainer.ShowAll()
+}) // for everyone else
+// END GOTK3 OMIT
+
+// START GO-GTK OMIT
+// in `func main()`, before gtk.Init(nil)
+glib.ThreadInit(nil)
+gdk.ThreadsInit()
+gdk.ThreadsEnter()
+
+// later on, from your goroutine:
+gdk.ThreadsEnter()
+myLabel.SetText(calculationResult)
+gdk.ThreadsLeave()
+// END GO-GTK OMIT

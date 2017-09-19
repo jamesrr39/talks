@@ -1,0 +1,144 @@
+Native GTK+ apps written in Go
+
+19 September 2017
+Tags: GTK+, Go, Desktop Application
+
+James Ralphs
+
+jr.ralphs@gmail.com
+
+* About Me
+
+- Web developer since 2013.
+- Wrote my first line of Go in mid-2014.
+- Over time, I came to really like a lot of ideas behind Go.
+- One of my interests is making applications for users, whether developers or normal people at home, hence the interest in linking Go and UI.
+
+* GUI libraries for Go
+
+.link https://github.com/avelino/awesome-go#gui
+- Mostly bindings & cgo.
+- A couple of projects using electron.
+- [[https://godoc.org/golang.org/x/exp/shiny][Shiny]]; pure Go, but lacking key features.
+
+In short, we are still missing a fully-featured, pure Go, GUI library.
+However there are some creative solutions.
+
+* GTK+
+This talk will be about GTK+ 3 [[https://github.com/gotk3/gotk3][gotk3]] bindings, and GTK+ 2 with the [[https://github.com/mattn/go-gtk][go-gtk]] bindings.
+
+- Cross platform GUI Library, written in C.
+- Been around for ages.
+- Bindings for many languages.
+- LGPL2.1 for GTK+, ISC (gotk3)/MIT (go-gtk) licenses for bindings.
+- cgo...
+- Aside from the documentation on github, these might also be helpful:
+-- [[https://github.com/gotk3/gotk3-examples][gotk3 examples]]
+-- [[http://mattn.github.io/go-gtk][go-gtk demo page]]
+-- PyGTK documentation.
+A couple of sample projects:
+-- [[https://github.com/jamesrr39/taskrunner-app]] (go-gtk)
+-- [[https://github.com/jamesrr39/gtk3-image-gallery-demo-app]] (gotk3)
+
+* Installation & build
+For Ubuntu:16.04:
+
+- gotk3:
+Install C dependencies:
+.code install-build-gtk.sh /START GOTK3 INSTALL OMIT/,/END GOTK3 INSTALL OMIT/
+
+Build for Ubuntu 16.04:
+.code install-build-gtk.sh /START GOTK3 BUILD OMIT/,/END GOTK3 BUILD OMIT/
+
+- go-gtk:
+Install C dependencies:
+.code install-build-gtk.sh /START GO-GTK INSTALL OMIT/,/END GO-GTK INSTALL OMIT/
+
+* Starting out
+
+Error handling omitted so it would fit on one slide. Taken from the gotk3 README.
+
+.code gtk-main.go
+
+* Layout
+
+- Vertical Box and Horizonal Box are kind of a "bread and butter" of layouts.
+- Both have a PackStart(child, expand, fill, padding), and PackEnd, method, and will handle responsiveness as the space allocation changes.
+
+.code layout.go.example /START BOX OMIT/,/END BOX OMIT/
+
+- ScrolledWindow is also a very useful layout tool for when the items you want to show will/might overflow.
+
+.code layout.go.example /START SCROLLEDWINDOW OMIT/,/END SCROLLEDWINDOW OMIT/
+
+* Images
+
+While both sets of bindings have image from file path methods, in Go we would like support for showing an `image.Image`.
+
+.code image_pixbuf.go.example /START PIXBUF OMIT/,/END PIXBUF OMIT/
+
+If you make changes to any widgets, remember to call myWidget.ShowAll()
+
+You can find utilities to convert image.Image to gdk pixel buffers here: [[https://github.com/jamesrr39/go-gtk-extra]]
+
+* Events
+
+.code events.go.example /START EVENTS OMIT/,/END EVENTS OMIT/
+
+- PyGTK and GTK+ developer.gnome.org documentation very useful for signal names.
+- Using a debouncer (only run this function once every x ms) is a very good idea for signals that can be fired many times in a short period of time (ex. "size-allocate").
+
+* Patterns
+
+Card interface
+.code card.go.example /START CARD OMIT/,/END CARD OMIT/
+
+Can be coupled with
+.code card.go.example /START RENDERCARD OMIT/,/END RENDERCARD OMIT/
+
+where `AppWindow` is a struct containing outerContainer, contentContainer, the window and data access objects.
+
+* Asynchronous/goroutines
+
+GTK+ is *not* thread-safe, but has APIs for handling UI updates by different goroutines.
+
+- gotk3
+
+.code threads.go.example /START GOTK3 OMIT/,/END GOTK3 OMIT/
+
+- go-gtk
+
+.code threads.go.example /START GO-GTK OMIT/,/END GO-GTK OMIT/
+
+* Lazy loading
+
+- In UI development on whatever library you use, doing lots of calculations on the main "thread" is a recipe for "app not responding".
+- Fortunately in Go, it's very easy to create goroutines to do this work.
+- You can use the previous slide as a guide to asynchronous operations/goroutines to put all of your heavy work in there and update the UI from them, while keeping the OS happy with a reponsive main goroutine.
+- It's worth considering adding a context.Context argument to the `Card.Render()` method, or an `onClose()` method to the `Card` interface.
+
+* Embedding static assets
+
+[[https://github.com/jteeuwen/go-bindata]] is a package that turns binary assets into Go source code.
+- Basically turns binary files into: var _fileX = []byte("\xff\ ... )
+- Has worked well for me for web resources.
+- Simple and effective way of keeping the "one binary" deployment.
+
+* Another GUI project with a different approach worth mentioning:
+
+- [[https://github.com/asticode/go-astilectron]]
+- A different approach on a Go GUI. Uses [[https://electron.atom.io/][Electron]]; so HTML/CSS/JS frontend, and Go "server".
+- Communicates via a port, so basically a client/server relationship.
+- Security against a second user accessing it via a port built in - when attempting to open a second TCP connections, the app crashes.
+- MIT License - might be more acceptable in a business setting than the LGPL that GTK+ comes with.
+
+* So, I want to write a Desktop Application in Go for my app! What should I use?
+
+- If you want something flashy, HTML/CSS/JS is your best bet - so something that uses Electron backed with Go (go-astilectron!) would be a good choice here.
+- For a more Go-centric approach, go-gtk and gotk3 are both stable sets of bindings that provide an easy-to-use interface to GUI programming in Go.
+- Cgo makes getting started not straightforward, and cross-compiling becomes difficult.
+- Remember, for things running in controlled environments, there is also:
+
+.code launch-chrome-app.sh.example /START LAUNCH CHROME APP OMIT/,/END LAUNCH CHROME APP OMIT/
+
+(google-chrome binary name may vary by platform)

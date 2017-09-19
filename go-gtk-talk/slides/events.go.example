@@ -1,0 +1,5 @@
+// START EVENTS OMIT
+myWidget.Connect("clicked", func() { ... }) // also works for tab + space
+myWidget.Connect("size-allocate", func() { ... }) // on the widget size allocation changing
+window.Connect("destroy", func() { ... })
+// END EVENTS OMIT
