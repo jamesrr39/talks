@@ -1,0 +1,77 @@
+# yarn-contained
+A tool for mitigating supply chain attacks
+5 Aug 2022
+
+James Ralphs
+jr.ralphs@gmail.com
+
+## Supply chain attack - what is it?
+
+A type of cyber attack that works by targeting less secure upstream elements from your application.
+
+This sounds abstract, but in software development, this happens. Dependencies and compilers are ideal targets for this.
+
+"Write once, exploit many times!"
+
+We will look specifically at dependencies for a front-end part of a project, where the packages are delivered from the JavaScript package registry [npmjs.com](https://www.npmjs.com) and installed through the `yarn` command line tool.
+
+## npm package registry
+
+In the past, you may have only had a handful of software dependencies, and you would completely trust them.
+
+Some organisation might even do an audit and the whole industry could trust it.
+
+Nowadays, we have npm! Each dependency has dependencies, and so on...
+
+.image node_modules_heaviest.webp
+
+## Let's look at a small project
+
+This is from the `package.json` of a small project:
+
+.code package_json.txt
+
+How many dependencies, including dependencies of these, do you think get installed?
+
+: total dependencies: 138
+
+## Great, but why is this a problem?
+
+It is no longer possible to audit each package you install. And, some of these packages may turn out to be malicious:
+
+- [Maleficent - an NPM package that harvests your environment variables, OS details, Network information, AWS Credentials, NPM Credentials and SSH keys](https://blog.bitsrc.io/malicious-npm-development-kit-a02401e6537e)
+- [Malicious npm postinstall scripts](https://duo.com/decipher/hunting-malicious-npm-packages)
+- [NPM supply-chain attack impacts hundreds of websites and apps](https://www.bleepingcomputer.com/news/security/npm-supply-chain-attack-impacts-hundreds-of-websites-and-apps/)
+
+Some of these packages act on the JavaScript client, directly on the end-users computer. Others read environment variables and files on the developer or build machine and send them off somewhere.
+
+They work by running their code when the library functions is called, or in the case of npm can also be run in the `postinstall` stage of installing the library.
+
+## What can we do about it?
+
+A 3 pronged defence:
+- Setting the `Content-Security-Policy` HTTP Header on the client - a useful complement to building in a container. Means your application might be trying to send requests to badsite.com, but is restricted from doing so.
+- Docker networking rules - for launching a container you don't fully trust to not be able to access the internet.
+- Preventing from data from the developer/build machine being exfiltrated while running `yarn` commands.
+
+The first two won't be convered in this talk. However, we will cover the third one.
+
+## Introducing yarn-contained!
+
+[yarn-contained](https://github.com/jamesrr39/yarn-contained) is a drop-in program that runs yarn inside a docker container.
+
+It shares the project folder as a docker volume, but nothing more - no e.g. SSH keys to steal. It doesn't carry through any environment variables - no e.g. AWS tokens to steal.
+
+Therefore, it massively decreases the amount of "stuff" on offer for the attacker to steal.
+
+
+
+## Further reading
+
+Project site: [https://github.com/jamesrr39/yarn-contained](https://github.com/jamesrr39/yarn-contained)
+
+- [Content-Security-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) HTTP Header
+- [Docker networking rules](https://stackoverflow.com/a/42336592) - for launching a container you don't fully trust to not be able to access the internet.
+- [Qubes OS](https://www.qubes-os.org/) - "everything as a container"
+
+Questions?

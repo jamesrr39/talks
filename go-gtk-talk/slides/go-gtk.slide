@@ -58,7 +58,7 @@ Install C dependencies:
 
 Error handling omitted so it would fit on one slide. Taken from the gotk3 README.
 
-.code gtk-main.go
+.code gtk-main.go.tmpl
 
 * Layout
 
