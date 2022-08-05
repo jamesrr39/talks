@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>yarn-contained</title>
+    <meta charset="utf-8">
+    <script>
+      var notesEnabled =  false ;
+    </script>
+    <script src="yarn-contained-talk_files/slides.js"></script>
+
+    
+
+    <script>
+      
+      if (window["location"] && window["location"]["hostname"] == "talks.golang.org") {
+        var _gaq = _gaq || [];
+        _gaq.push(["_setAccount", "UA-11222381-6"]);
+        _gaq.push(["b._setAccount", "UA-49880327-6"]);
+        window.trackPageview = function() {
+          _gaq.push(["_trackPageview", location.pathname+location.hash]);
+          _gaq.push(["b._trackPageview", location.pathname+location.hash]);
+        };
+        window.trackPageview();
+        window.trackEvent = function(category, action, opt_label, opt_value, opt_noninteraction) {
+          _gaq.push(["_trackEvent", category, action, opt_label, opt_value, opt_noninteraction]);
+          _gaq.push(["b._trackEvent", category, action, opt_label, opt_value, opt_noninteraction]);
+        };
+      }
+    </script>
+  <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1"><meta name="apple-mobile-web-app-capable" content="yes"></head>
+
+  <body style="display: none" class="loaded">
+
+    <section class="slides layout-widescreen" style="">
+
+      <article class="">
+        <h1>yarn-contained</h1>
+        <h3>A tool for mitigating supply chain attacks</h3>
+        <h3>5 August 2022</h3>
+        
+          <div class="presenter">
+            
+  
+  <p>
+    James Ralphs
+  </p>
+  
+
+          </div>
+        
+      </article>
+
+  
+  
+      <article class="">
+      
+        <h3>Supply chain attack - what is it?</h3>
+        <p>A type of cyber attack that works by targeting less secure upstream elements from your application.</p>
+<p>This sounds abstract, but in software development, this happens. Dependencies and compilers are ideal targets for this.</p>
+<p>"Write once, exploit many times!"</p>
+<p>We will look specifically at dependencies for a front-end part of a 
+project, where the packages are delivered from the JavaScript package 
+registry <a href="https://www.npmjs.com/" target="_blank" rel="noopener">npmjs.com</a> and installed through the <code>yarn</code> command line tool.</p>
+
+      
+      <span class="pagenumber">2</span>
+      </article>
+  
+  
+  
+      <article class="">
+      
+        <h3>npm package registry</h3>
+        <p>In the past, you may have only had a handful of software dependencies, and you would completely trust them.</p>
+<p>Some organisation might even do an audit and the whole industry could trust it.</p>
+<p>Nowadays, we have npm! Each dependency has dependencies, and so on...</p>
+
+<div class="image">
+  <img src="yarn-contained-talk_files/node_modules_heaviest.webp">
+</div>
+
+      
+      <span class="pagenumber">3</span>
+      </article>
+  
+  
+  
+      <article class="">
+      
+        <h3>Let's look at a small project</h3>
+        <p>This is from the <code>package.json</code> of a small project:</p>
+
+  <div class="code">
+<pre><span num="1">"bootstrap": "^5.1.3",</span>
+<span num="2">"font-awesome": "^4.7.0",</span>
+<span num="3">"leaflet": "^1.8.0",</span>
+<span num="4">"react": "^18.1.0",</span>
+<span num="5">"react-dom": "^18.1.0",</span>
+<span num="6">"react-query": "^3.38.0",</span>
+<span num="7">"react-redux": "^8.0.1",</span>
+<span num="8">"react-router-dom": "^6.3.0",</span>
+<span num="9">"react-select": "^5.3.1",</span>
+<span num="10">"react-thunk": "^1.0.0",</span>
+<span num="11">"recharts": "^2.1.9",</span>
+<span num="12">"redux": "^4.2.0",</span>
+<span num="13">"redux-thunk": "^2.4.1"</span>
+</pre>
+</div>
+<p>How many dependencies, including dependencies of these, do you think get installed?</p>
+
+      
+      <span class="pagenumber">4</span>
+      </article>
+  
+  
+  
+      <article class="far-past">
+      
+        <h3>Great, but why is this a problem?</h3>
+        <p>It is no longer possible to audit each package you install. And, some of these packages may turn out to be malicious:</p>
+<ul>
+<li><a href="https://blog.bitsrc.io/malicious-npm-development-kit-a02401e6537e" target="_blank" rel="noopener">Maleficent
+ - an NPM package that harvests your environment variables, OS details, 
+Network information, AWS Credentials, NPM Credentials and SSH keys</a></li>
+<li><a href="https://duo.com/decipher/hunting-malicious-npm-packages" target="_blank" rel="noopener">Malicious npm postinstall scripts</a></li>
+<li><a href="https://www.bleepingcomputer.com/news/security/npm-supply-chain-attack-impacts-hundreds-of-websites-and-apps/" target="_blank" rel="noopener">NPM supply-chain attack impacts hundreds of websites and apps</a></li>
+</ul>
+<p>Some of these packages act on the JavaScript client, directly on the 
+end-users computer. Others read environment variables and files on the 
+developer or build machine and send them off somewhere.</p>
+<p>They work by running their code when the library functions is called, or in the case of npm can also be run in the <code>postinstall</code> stage of installing the library.</p>
+
+      
+      <span class="pagenumber">5</span>
+      </article>
+  
+  
+  
+      <article class="past">
+      
+        <h3>What can we do about it?</h3>
+        <p>A 3 pronged defence:</p>
+<ul>
+<li>Setting the <code>Content-Security-Policy</code> HTTP Header on the 
+client - a useful complement to building in a container. Means your 
+application might be trying to send requests to badsite.com, but is 
+restricted from doing so.</li>
+<li>Docker networking rules - for launching a container you don't fully trust to not be able to access the internet.</li>
+<li>Preventing from data from the developer/build machine being exfiltrated while running <code>yarn</code> commands.</li>
+</ul>
+<p>The first two won't be convered in this talk. However, we will cover the third one.</p>
+
+      
+      <span class="pagenumber">6</span>
+      </article>
+  
+  
+  
+      <article class="current">
+      
+        <h3>Introducing yarn-contained!</h3>
+        <p><a href="https://github.com/jamesrr39/yarn-contained" target="_blank" rel="noopener">yarn-contained</a> is a drop-in program that runs yarn inside a docker container.</p>
+<p>It shares the project folder as a docker volume, but nothing more - 
+no e.g. SSH keys to steal. It doesn't carry through any environment 
+variables - no e.g. AWS tokens to steal.</p>
+<p>Therefore, it massively decreases the amount of "stuff" on offer for the attacker to steal.</p>
+
+      
+      <span class="pagenumber">7</span>
+      </article>
+  
+  
+  
+      <article class="next">
+      
+        <h3>Further reading</h3>
+        <p>Project site: <a href="https://github.com/jamesrr39/yarn-contained" target="_blank" rel="noopener">https://github.com/jamesrr39/yarn-contained</a></p>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP" target="_blank" rel="noopener">Content-Security-Policy</a> HTTP Header</li>
+<li><a href="https://stackoverflow.com/a/42336592" target="_blank" rel="noopener">Docker networking rules</a> - for launching a container you don't fully trust to not be able to access the internet.</li>
+<li><a href="https://www.qubes-os.org/" target="_blank" rel="noopener">Qubes OS</a> - "everything as a container"</li>
+</ul>
+<p>Questions?</p>
+
+      
+      <span class="pagenumber">8</span>
+      </article>
+  
+  
+
+      <article class="far-next">
+        <h3>Thank you</h3>
+        
+          <div class="presenter">
+            
+  
+  <p>
+    James Ralphs
+  </p>
+  
+<p class="link"><a href="mailto:jr.ralphs@gmail.com" target="_blank">jr.ralphs@gmail.com</a></p>
+          </div>
+        
+      </article>
+
+    <div class="slide-area" id="prev-slide-area"></div><div class="slide-area" id="next-slide-area"></div></section>
+
+    <div id="help" style="display: none;">
+      Use the left and right arrow keys or click the left and right
+      edges of the page to navigate between slides.<br>
+      (Press 'H' or navigate to hide this message.)
+    </div>
+
+    
+    <script src="yarn-contained-talk_files/play.js"></script>
+    
+
+    <script>
+      (function() {
+        
+        if (window["location"] && window["location"]["hostname"] == "talks.golang.org") {
+          var ga = document.createElement("script"); ga.type = "text/javascript"; ga.async = true;
+          ga.src = ("https:" == document.location.protocol ? "https://ssl" : "http://www") + ".google-analytics.com/ga.js";
+          var s = document.getElementsByTagName("script")[0]; s.parentNode.insertBefore(ga, s);
+        }
+      })();
+    </script>
+  
+
+<link rel="stylesheet" type="text/css" href="yarn-contained-talk_files/css.css"><link rel="stylesheet" type="text/css" href="yarn-contained-talk_files/styles.css"></body></html>
