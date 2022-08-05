@@ -64,7 +64,14 @@ It shares the project folder as a docker volume, but nothing more - no e.g. SSH 
 
 Therefore, it massively decreases the amount of "stuff" on offer for the attacker to steal.
 
+## yarn-contained in action!
 
+.video yarn-contained-demo.mp4 video/mp4 550 _
+
+## This is not perfect
+
+- Some keys will probably be supplied to the container anyway, to connect to other services.
+- Source code could still be stolen, since it is in the container.
 
 ## Further reading
 
